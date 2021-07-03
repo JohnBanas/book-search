@@ -3,7 +3,78 @@ const { signToken } = require('../utils/auth');
 const { User, Book } = require('../models');
 
 const resolvers = {
+  Query: {
+    me: async (_,__,context) => {
+      if (context.user) {
+        const userData = await User.findOne({ _id: context.user._id })
+          .select('-__v -password')
+          .populate('savedBooks');
 
+        return userData;
+      }
+      throw new AuthenticationError('Not logged in');
+    }
+  },
+  Mutation: {
+  //   # Login requires email and password returns authentication/ new JWT for User
+  // login(email: String!, password: String!): Auth
+    login: async (_,{email, password}) => {
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        throw new AuthenticationError('Incorrect credentials');
+      }
+
+      const correctPw = await user.isCorrectPassword(password);
+
+      if (!correctPw) {
+        throw new AuthenticationError('Incorrect credentials');
+      }
+
+      const token = signToken(user);
+      return { token, user };
+    },
+  // # add a new User requires email, password, username, and returns JWT
+  // addUser(username: String!, email: String!, password: String!): Auth
+    addUser: async (_, args) => {
+      const user = await User.create(args);
+      const token = signToken(user);
+
+      return { token, user };
+    },
+  // # saves a book to a specific User
+  // saveBook(user: BookInput): User
+    saveBook: async (_, {bookId}, context) => {
+      // if there is a user
+      if (context.user) {
+        // update the user's books array 
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $addToSet: { books: bookId } },
+          { new: true }
+        ).populate('books');
+
+        return updatedUser;
+      }
+      throw new AuthenticationError('You need to be logged in!');
+    },
+  // # remove a book from a User
+  // removeBook(bookId: String): User
+    removeBook: async (_, { bookId }, context) => {
+      // if there is a user
+      if (context.user) {
+        // update the user's books array 
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $pull: { books: bookId } },
+          { new: true }
+        ).populate('books');
+
+        return updatedUser;
+      }
+      throw new AuthenticationError('You need to be logged in!');
+    }
+  }
 };
 
 module.exports = resolvers;
