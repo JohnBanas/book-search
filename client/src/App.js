@@ -7,23 +7,59 @@ import {
   ApolloClient,
   InMemoryCache,
   ApolloProvider,
-  useQuery,
-  gql
+  HttpLink,
+  ApolloLink,
+  from
 } from "@apollo/client";
+import { onError } from '@apollo/client/link/error';
+
+const httpLink = new HttpLink({
+  uri: '/graphql'
+});
+
+const errorLink = onError(({ graphQLErrors, networkError }) => {
+  if (graphQLErrors)
+    graphQLErrors.forEach(({ message, locations, path }) =>
+      console.log(
+        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
+      ),
+    );
+
+  if (networkError) console.log(`[Network error]: ${networkError}`);
+});
+
+const tokenLink = new ApolloLink((operation, forward) => {
+  const token = localStorage.getItem('id_token');
+  operation.setContext({
+      headers: {
+      authorization: token ? `Bearer ${token}` : 'No token found in App.js'
+      }
+  });
+  return forward(operation);
+ });
 
 const client = new ApolloClient({
-  request: operation => {
-    const token = localStorage.getItem('id_token');
-
-    operation.setContext({
-      headers: {
-        authorization: token ? `Bearer ${token}` : ''
-      }
-    });
-  },
-  uri: '/graphql',
+  // The `from` function combines an array of individual links
+  // into a link chain
+  link: from([errorLink, tokenLink, httpLink]),
   cache: new InMemoryCache()
 });
+
+
+
+// const client = new ApolloClient({
+//   request: operation => {
+//     const token = localStorage.getItem('id_token');
+
+//     operation.setContext({
+//       headers: {
+//         authorization: token ? `Bearer ${token}` : ''
+//       }
+//     });
+//   },
+//   uri: '/graphql',
+//   cache: new InMemoryCache()
+// });
 
 function App() {
   return (
