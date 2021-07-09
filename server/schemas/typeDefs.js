@@ -51,7 +51,7 @@ type Mutation {
   # add a new User requires email, password, username, and returns JWT
   addUser(username: String!, email: String!, password: String!): Auth
   # saves a book to a specific User
-  saveBook(bookId: String!, authors: [String]!, description: String!, title: String!, image: String!, link: String!): User
+  saveBook(bookId: String, authors: [String], description: String, title: String, image: String, link: String): User
   # remove a book from a User
   removeBook(bookId: String):User
 }

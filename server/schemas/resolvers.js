@@ -1,18 +1,19 @@
 const { AuthenticationError } = require('apollo-server-express');
 const { signToken } = require('../utils/auth');
 const { User } = require('../models');
+const chalk = require('chalk');
 
 const resolvers = {
   Query: {
-    me: async (_,__,context) => {
-      if (context.user) {
-        const userData = await User.findOne({ _id: context.user._id})
-          .select('-__v -password')
-          .populate('savedBooks');
-
-        return userData;
+    me: async (_, __, context) => {
+      
+      if (!context.user) {
+        throw new AuthenticationError('Not logged in');
       }
-      throw new AuthenticationError('Not logged in');
+      const userData = await User.findOne({ email: context.user.email })
+        .select('-__v -password');
+      console.log(chalk.blueBright(userData));
+      return userData;
     }
   },
   Mutation: {
