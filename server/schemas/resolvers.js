@@ -12,7 +12,6 @@ const resolvers = {
       }
       const userData = await User.findOne({ email: context.user.email })
         .select('-__v -password');
-      console.log(chalk.blueBright(userData));
       return userData;
     }
   },
