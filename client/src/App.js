@@ -13,9 +13,6 @@ import {
 } from "@apollo/client";
 import { onError } from '@apollo/client/link/error';
 
-//commments
-// 
-//   "build": "cd client && npm run build",
 const httpLink = new HttpLink({
   uri: '/graphql'
 });
