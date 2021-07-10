@@ -13,7 +13,7 @@ import {
 } from "@apollo/client";
 import { onError } from '@apollo/client/link/error';
 
-//commment
+//commments
 const httpLink = new HttpLink({
   uri: '/graphql'
 });
