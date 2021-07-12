@@ -38,8 +38,8 @@ const SignupForm = () => {
           password: userFormData.password
         }
       });
-      console.log(data);
-      Auth.login({data});
+      console.log(data.addUser.token);
+      Auth.login(data.addUser.token);
     } catch (err) {
       console.error(err);
       setShowAlert(true);
